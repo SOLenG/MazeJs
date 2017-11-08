@@ -4,6 +4,7 @@
   "description": "design pattern experiment",
   "main": "Maze/main.js",
   "scripts": {
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Soleng",
