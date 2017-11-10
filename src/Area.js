@@ -9,9 +9,14 @@ export class Area {
     constructor(name, position) {
         this.name = name;
         this.position = position;
+        this.access = [];
     }
 
-    addAccess(area) {
-
+    /**
+     *
+     * @param {Access} access
+     */
+    addAccess(access) {
+        this.access.push(access);
     }
 }

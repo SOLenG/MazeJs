@@ -8,7 +8,7 @@ export class Access {
      */
     constructor(z1, z2) {
         this.z1 = z1;
-        this.z1.addAccess(z2);
         this.z2 = z2;
+        this.z1.addAccess(this);
     }
 }

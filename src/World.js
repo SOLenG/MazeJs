@@ -1,11 +1,14 @@
 import {Fabric} from "./Fabric";
-import {Access} from "./Access";
 import {Area} from "./Area";
+import {Position} from "./Position";
 
 export class World {
-    constructor() {
+    constructor(size = 10) {
+        this.size = size;
         this.areas = new Set();
         this.access = new Set();
+        this.pMap = new Map();
+        this.aMap = new Map();
     }
 
     /**
@@ -13,28 +16,32 @@ export class World {
      * @param {Fabric} fabric
      */
     loadArea(fabric) {
-        const a1 = fabric.newArea('A0', 0, 0);
-        const a2 = fabric.newArea('A1', 0, 1);
+        let i = this.size;
 
-        this.addZone(a1);
-        this.addZone(a2);
-        const ac1 = fabric.newAccess(a1, a2);
-        this.addAccess(fabric, ac1);
+        do {
+            let y = this.size;
+            do {
+                const a1 = fabric.newArea('A' + i + y, i, y);
+                this.addZone(a1);
+                this.loadAccess(fabric, a1);
+            } while (--y >= 0)
+        } while (--i >= 0)
     }
 
     /**
      *
      * @param {Fabric} fabric
-     * @param {Access} ac1
+     * @param {Area} ar1
+     * @param {Area} ar2
      */
-    addAccess(fabric, ac1) {
-        this.access.add(ac1);
-        const ac2 = fabric.newAccess(ac1.z1, ac1.z2);
-        this.access.add(ac2);
+    addAccess(fabric, ar1, ar2) {
+        const access = [fabric.newAccess(ar1, ar2), fabric.newAccess(ar2, ar1)];
+        access.forEach(v => this.access.add(v));
+        this.aMap.set((ar1.position.x + ar2.position.x).toString(16) + (ar1.position.y + ar2.position.y).toString(16), access);
     }
 
     simulate() {
-
+        console.log(this);
     }
 
     /**
@@ -42,6 +49,34 @@ export class World {
      * @param {Area} area
      */
     addZone(area) {
+        this.pMap.set(area.position.toString(), area);
         this.areas.add(area);
+    }
+
+    /**
+     *
+     * @param {Fabric} fabric
+     * @param {Area} area
+     */
+    loadAccess(fabric, area) {
+
+        let ar;
+
+        if ((ar = this.pMap.get(new Position(area.position.x - 1, area.position.y).toString())) !== undefined &&
+            !this.aMap.get((area.position.x * 2 - 1).toString(16) + (area.position.y).toString(16))) {
+            this.addAccess(fabric, area, ar);
+        }
+        if ((ar = this.pMap.get(new Position(area.position.x, area.position.y + 1).toString())) !== undefined &&
+            !this.aMap.get((area.position.x).toString(16) + (area.position.y * 2 + 1).toString(16))) {
+            this.addAccess(fabric, area, ar);
+        }
+        if ((ar = this.pMap.get(new Position(area.position.x, area.position.y - 1).toString())) !== undefined &&
+            !this.aMap.get((area.position.x).toString(16) + (area.position.y * 2 - 1).toString(16))) {
+            this.addAccess(fabric, area, ar);
+        }
+        if ((ar = this.pMap.get(new Position(area.position.x + 1, area.position.y).toString())) !== undefined &&
+            !this.aMap.get((area.position.x - 1).toString(16) + (area.position.y).toString(16))) {
+            this.addAccess(fabric, area, ar);
+        }
     }
 }
