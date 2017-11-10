@@ -1,6 +1,7 @@
 import {Fabric} from "./Fabric";
 import {Area} from "./Area";
 import {Position} from "./Position";
+import * as BABYLON from 'babylonjs';
 
 export class World {
     constructor(size = 10) {
@@ -41,6 +42,20 @@ export class World {
     }
 
     simulate() {
+        if(!BABYLON.Engine.isSupported()) {
+            return;
+        }
+        const canvas = document.getElementById('maze');
+        const engine = new BABYLON.Engine(canvas, false);
+        const scene = createScene(canvas, engine);
+
+        engine.runRenderLoop(function() {
+            scene.render();
+        });
+        // the canvas/window resize event handler
+        window.addEventListener('resize', function(){
+            engine.resize();
+        });
         console.log(this);
     }
 
@@ -79,4 +94,69 @@ export class World {
             this.addAccess(fabric, area, ar);
         }
     }
+}
+
+var createScene = function (canvas, engine) {
+    var scene = new BABYLON.Scene(engine);
+    var camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI/2, Math.PI / 3, 12, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, false);
+
+    // Add a light
+    var light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Tiled Ground Tutorial
+
+    // Part 1 : Creation of Tiled Ground
+    // Parameters
+    var xmin = -3;
+    var zmin = -3;
+    var xmax =  3;
+    var zmax =  3;
+    var precision = {
+        "w" : 2,
+        "h" : 2
+    };
+    var subdivisions = {
+        'h' : 8,
+        'w' : 8
+    };
+    // Create the Tiled Ground
+    var tiledGround = new BABYLON.Mesh.CreateTiledGround("Tiled Ground", xmin, zmin, xmax, zmax, subdivisions, precision, scene);
+
+
+    // Part 2 : Create the multi material
+    // Create differents materials
+    var whiteMaterial = new BABYLON.StandardMaterial("White", scene);
+    whiteMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
+    var blackMaterial = new BABYLON.StandardMaterial("Black", scene);
+    blackMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+
+    // Create Multi Material
+    var multimat = new BABYLON.MultiMaterial("multi", scene);
+    multimat.subMaterials.push(whiteMaterial);
+    multimat.subMaterials.push(blackMaterial);
+
+
+    // Part 3 : Apply the multi material
+    // Define multimat as material of the tiled ground
+    tiledGround.material = multimat;
+
+    // Needed variables to set subMeshes
+    var verticesCount = tiledGround.getTotalVertices();
+    var tileIndicesLength = tiledGround.getIndices().length / (subdivisions.w * subdivisions.h);
+
+    // Set subMeshes of the tiled ground
+    tiledGround.subMeshes = [];
+    var base = 0;
+    for (var row = 0; row < subdivisions.h; row++) {
+        for (var col = 0; col < subdivisions.w; col++) {
+            tiledGround.subMeshes.push(new BABYLON.SubMesh(row%2 ^ col%2, 0, verticesCount, base , tileIndicesLength, tiledGround));
+            base += tileIndicesLength;
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    return scene;
 }

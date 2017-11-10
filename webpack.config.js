@@ -5,5 +5,10 @@ module.exports = {
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'dist')
+    },
+    resolve: {
+        alias: {
+            'babylonjs': path.join(__dirname, 'node_modules/babylonjs/dist/preview release/babylon.js'),
+        }
     }
 };
