@@ -10,7 +10,7 @@
   "author": "Soleng",
   "license": "ISC",
   "devDependencies": {
-    "webpack": "^3.8.1"
+    "webpack": "^5.75.0"
   },
   "dependencies": {
     "lodash": "^4.17.4"
